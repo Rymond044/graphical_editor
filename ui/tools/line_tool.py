@@ -9,24 +9,28 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QSlider,
     QVBoxLayout,
+    QWidget,
 )
 
 from algorithms.straight_lines import bresenham_int_line, dda_line, wu_line
+from ui.tools.base_tool import BaseTool
 
 
-class SidebarWidget(QFrame):
-    def __init__(self, canvas_widget):
-        super().__init__()
-        self.canvas = canvas_widget
-        self.setFixedWidth(280)
-        self.setFrameStyle(QFrame.Shape.StyledPanel)
+class LineTool(BaseTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self._create_settings_widget()
 
-        layout = QVBoxLayout(self)
+    def _create_settings_widget(self):
+        widget = QFrame()
+        widget.setFrameStyle(QFrame.Shape.StyledPanel)
+
+        layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        title_label = QLabel("Graphical Editor")
-        title_label.setStyleSheet("font-size: 16pt; font-weight: bold;")
+        title_label = QLabel("Line Drawing")
+        title_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -38,15 +42,15 @@ class SidebarWidget(QFrame):
 
         self.algo_combo = QComboBox()
         self.algo_combo.addItem("DDA", "dda")
-        self.algo_combo.addItem("Bre", "bresenham")
-        self.algo_combo.addItem("Wu (anti-aliasing)", "wu")
+        self.algo_combo.addItem("Bresenham", "bresenham")
+        self.algo_combo.addItem("Wu (antialiasing)", "wu")
         self.algo_combo.setCurrentIndex(0)
 
         algo_layout.addWidget(self.algo_combo)
         algo_group.setLayout(algo_layout)
         layout.addWidget(algo_group)
 
-        self.draw_btn = QPushButton("Draw a line")
+        self.draw_btn = QPushButton("▶ Draw Line")
         self.draw_btn.setStyleSheet(
             """
             QPushButton {
@@ -68,22 +72,22 @@ class SidebarWidget(QFrame):
         self.draw_btn.clicked.connect(self.on_draw)
         layout.addWidget(self.draw_btn)
 
-        self.clear_btn = QPushButton("Clear all")
+        self.clear_btn = QPushButton("Clear All")
         self.clear_btn.clicked.connect(self.on_clear)
         layout.addWidget(self.clear_btn)
 
         layout.addWidget(self._create_separator())
 
-        debug_group = QGroupBox("Debug")
+        debug_group = QGroupBox("Debug Mode")
         debug_layout = QVBoxLayout()
         debug_layout.setSpacing(5)
 
-        self.debug_checkbox = QCheckBox("Iterative mode")
+        self.debug_checkbox = QCheckBox("Step-by-step")
         self.debug_checkbox.setChecked(False)
         self.debug_checkbox.stateChanged.connect(self.on_debug_mode_changed)
         debug_layout.addWidget(self.debug_checkbox)
 
-        self.step_label = QLabel("Iteration: 0 / 0")
+        self.step_label = QLabel("Step: 0 / 0")
         self.step_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         debug_layout.addWidget(self.step_label)
 
@@ -96,11 +100,11 @@ class SidebarWidget(QFrame):
         debug_layout.addWidget(self.step_slider)
 
         step_buttons_layout = QHBoxLayout()
-        self.prev_btn = QPushButton("<-")
+        self.prev_btn = QPushButton("◄")
         self.prev_btn.setEnabled(False)
         self.prev_btn.clicked.connect(self.on_prev_step)
 
-        self.next_btn = QPushButton("->")
+        self.next_btn = QPushButton("►")
         self.next_btn.setEnabled(False)
         self.next_btn.clicked.connect(self.on_next_step)
 
@@ -113,13 +117,13 @@ class SidebarWidget(QFrame):
 
         layout.addWidget(self._create_separator())
 
-        zoom_group = QGroupBox("Scale")
+        zoom_group = QGroupBox("Zoom")
         zoom_layout = QVBoxLayout()
         zoom_layout.setSpacing(5)
 
         self.scale_label = QLabel()
-        self.scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.scale_label.setStyleSheet("font-weight: bold;")
+        self.scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.update_scale_label()
 
         zoom_buttons_layout = QHBoxLayout()
@@ -141,24 +145,29 @@ class SidebarWidget(QFrame):
         zoom_group.setLayout(zoom_layout)
         layout.addWidget(zoom_group)
 
-        self.reset_btn = QPushButton("🎯 Scale reset")
+        self.reset_btn = QPushButton("🎯 Reset Camera")
         self.reset_btn.clicked.connect(self.on_reset_camera)
         layout.addWidget(self.reset_btn)
 
         layout.addStretch()
 
         info_label = QLabel(
-            "Navigation:\n• LMB - selection\n• RMB/MMB - movement\n• Wheel - scale"
+            "Controls:\n• LMB - select points\n• MMB/RMB - pan\n• Wheel - zoom"
         )
         info_label.setStyleSheet("color: gray; font-size: 9pt;")
         info_label.setWordWrap(True)
         layout.addWidget(info_label)
+
+        self._settings_widget = widget
 
     def _create_separator(self):
         line = QFrame()
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Sunken)
         return line
+
+    def get_settings_widget(self) -> QWidget:
+        return self._settings_widget
 
     def update_scale_label(self):
         self.scale_label.setText(f"{self.canvas.cell_size} px")
@@ -179,7 +188,7 @@ class SidebarWidget(QFrame):
         self.canvas.clear_all()
         self.step_slider.setMaximum(0)
         self.step_slider.setValue(0)
-        self.step_label.setText("Iteration: 0 / 0")
+        self.step_label.setText("Step: 0 / 0")
         self._update_step_buttons()
 
     def on_debug_mode_changed(self, state):
@@ -193,7 +202,7 @@ class SidebarWidget(QFrame):
     def on_step_changed(self, value):
         self.canvas.set_debug_step(value)
         max_steps = self.step_slider.maximum()
-        self.step_label.setText(f"Iteration: {value} / {max_steps}")
+        self.step_label.setText(f"Step: {value} / {max_steps}")
         self._update_step_buttons()
 
     def on_prev_step(self):
@@ -229,7 +238,6 @@ class SidebarWidget(QFrame):
 
         if generator:
             self.canvas.run_algorithm(generator)
-
             self.canvas.clear_clicked_points()
 
             max_steps = self.canvas.get_max_steps()
@@ -238,5 +246,5 @@ class SidebarWidget(QFrame):
                 self.step_slider.setValue(0)
             else:
                 self.step_slider.setValue(max_steps)
-            self.step_label.setText(f"Шаг: {self.step_slider.value()} / {max_steps}")
+            self.step_label.setText(f"Step: {self.step_slider.value()} / {max_steps}")
             self._update_step_buttons()

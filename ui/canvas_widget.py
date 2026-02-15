@@ -17,12 +17,11 @@ class CanvasWidget(QWidget):
         self.last_pan_pos = QPoint()
 
         self.lines = []
-
         self.clicked_points = []
+
         self.current_line_pixels = []
         self.current_step = 0
 
-        # Цвета
         self.bg_color = QColor(255, 255, 255)
         self.grid_color = QColor(220, 220, 220)
         self.axis_color = QColor(0, 0, 0)
@@ -132,13 +131,9 @@ class CanvasWidget(QWidget):
         painter.fillRect(0, 0, w, h, self.bg_color)
 
         self._draw_grid(painter, w, h)
-
         self._draw_axes(painter, w, h)
-
         self._draw_all_lines(painter)
-
         self._draw_current_line(painter)
-
         self._draw_clicked_points(painter)
 
         painter.end()
