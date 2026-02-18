@@ -25,8 +25,8 @@ class CanvasWidget(QWidget):
         self.bg_color = QColor(255, 255, 255)
         self.grid_color = QColor(220, 220, 220)
         self.axis_color = QColor(0, 0, 0)
-        self.pixel_color = QColor(66, 165, 245)
-        self.point_color = QColor(255, 87, 34)
+        self.pixel_color = QColor(0, 0, 0)
+        self.point_color = QColor(3, 3, 3)
 
     def world_to_screen(self, world_x: float, world_y: float):
         h = self.height()
@@ -93,14 +93,11 @@ class CanvasWidget(QWidget):
         if a0 is None:
             return
 
-        if a0.button() == Qt.MouseButton.LeftButton:
+        if a0.button() == Qt.MouseButton.RightButton:
             wx, wy = self.screen_to_world(a0.pos().x(), a0.pos().y())
             self.clicked_points.append((wx, wy))
             self.update()
-        elif (
-            a0.button() == Qt.MouseButton.MiddleButton
-            or a0.button() == Qt.MouseButton.RightButton
-        ):
+        elif a0.button() == Qt.MouseButton.LeftButton:
             self.is_panning = True
             self.last_pan_pos = a0.pos()
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
@@ -114,10 +111,7 @@ class CanvasWidget(QWidget):
             self.update()
 
     def mouseReleaseEvent(self, a0):
-        if a0 is not None and (
-            a0.button() == Qt.MouseButton.MiddleButton
-            or a0.button() == Qt.MouseButton.RightButton
-        ):
+        if a0 is not None and (a0.button() == Qt.MouseButton.LeftButton):
             self.is_panning = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
@@ -200,10 +194,3 @@ class CanvasWidget(QWidget):
             color = QColor(self.point_color)
             color.setAlphaF(0.7)
             painter.fillRect(x, y, size, size, color)
-
-            painter.setPen(QPen(QColor(255, 255, 255), 2))
-            center_x = x + size // 2
-            center_y = y + size // 2
-            offset = size // 4
-            painter.drawLine(center_x - offset, center_y, center_x + offset, center_y)
-            painter.drawLine(center_x, center_y - offset, center_x, center_y + offset)

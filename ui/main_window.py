@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
     def _create_tool_panel(self):
         panel = QWidget()
         panel.setFixedWidth(80)
-        panel.setStyleSheet("background-color: #2c3e50;")
+        panel.setStyleSheet("background-color: #2d2d2d;")
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(5, 10, 5, 10)
@@ -82,8 +82,7 @@ class MainWindow(QMainWindow):
         btn.setStyleSheet(
             """
             QPushButton {
-                background-color: #34495e;
-                color: white;
+                background-color: #393939;
                 border: none;
                 padding: 10px 5px;
                 font-size: 9pt;
@@ -91,10 +90,9 @@ class MainWindow(QMainWindow):
                 border-radius: 5px;
             }
             QPushButton:hover {
-                background-color: #4a6278;
+                background-color: #3e3e3e;
             }
             QPushButton:checked {
-                background-color: #3498db;
                 font-weight: bold;
             }
         """

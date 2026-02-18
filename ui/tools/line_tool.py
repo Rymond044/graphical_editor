@@ -152,7 +152,7 @@ class LineTool(BaseTool):
         layout.addStretch()
 
         info_label = QLabel(
-            "Controls:\n• LMB - select points\n• MMB/RMB - pan\n• Wheel - zoom"
+            "Controls:\n• RMB - select points\n• LMB - pan\n• Wheel - zoom"
         )
         info_label.setStyleSheet("color: gray; font-size: 9pt;")
         info_label.setWordWrap(True)
