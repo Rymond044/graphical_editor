@@ -193,7 +193,7 @@ class ConicsToolWidget(BaseTool):
             "circle": "P1: center | P2: point on circle",
             "ellipse": "P1: center | P2: corner (defines a, b)",
             "hyperbola": "P1: center | P2: corner (defines a, b)",
-            "parabola": "P1: vertex | P2: defines scale and direction",
+            "parabola": "P1: vertex | P2: horizontal distance = focal param",
         }
         self.hint_label.setText(hints.get(curve_type, ""))
 
@@ -271,10 +271,10 @@ class ConicsToolWidget(BaseTool):
             if a > 0 and b > 0:
                 generator = midpoint_hyperbola(x1, y1, a, b)
         elif curve_type == "parabola":
-            p = max(abs(x2 - x1), abs(y2 - y1))
-            direction = 1 if (x2 - x1) >= 0 else -1
-            if p > 0:
-                generator = midpoint_parabola(x1, y1, p, direction)
+            dx = x2 - x1
+            direction = 1 if dx > 0 else -1
+            p = max(1, abs(dx))
+            generator = midpoint_parabola(x1, y1, p, direction)
 
         if generator:
             self.canvas.run_algorithm(generator)

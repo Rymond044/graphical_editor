@@ -152,10 +152,10 @@ class CanvasWidget(QWidget):
         pen = QPen(self.axis_color, 2)
         painter.setPen(pen)
 
-        ax_y = int(h - self.offset_y)
+        ax_y = int(h - self.offset_y - self.cell_size // 2)
         painter.drawLine(0, ax_y, w, ax_y)
 
-        ax_x = int(self.offset_x)
+        ax_x = int(self.offset_x + self.cell_size // 2)
         painter.drawLine(ax_x, 0, ax_x, h)
 
     def _draw_all_lines(self, painter: QPainter):

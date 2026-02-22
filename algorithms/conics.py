@@ -121,13 +121,23 @@ def midpoint_parabola(cx, cy, p, direction=1, limit=None):
 
     seen = set()
     direction = 1 if direction >= 0 else -1
+    prev_y = 0
 
-    for y in range(limit + 1):
-        x_offset = (y * y) // (2 * p) if p > 0 else 0
-        x = cx + direction * x_offset
+    for x in range(limit + 1):
+        y_float = (2.0 * p * x) ** 0.5
+        y = round(y_float)
 
-        y_coords = [cy + y, cy - y] if y != 0 else [cy]
-        for py in y_coords:
-            if (x, py) not in seen:
-                seen.add((x, py))
-                yield (x, py, 1.0)
+        px = cx + direction * x
+
+        if y == 0:
+            if (px, cy) not in seen:
+                seen.add((px, cy))
+                yield (px, cy, 1.0)
+        else:
+            for iy in range(prev_y, y + 1):
+                for py in [cy + iy, cy - iy]:
+                    if (px, py) not in seen:
+                        seen.add((px, py))
+                        yield (px, py, 1.0)
+
+        prev_y = y
