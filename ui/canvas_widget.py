@@ -46,7 +46,7 @@ class CanvasWidget(QWidget):
             self.update()
 
     def zoom_out(self):
-        if self.cell_size > 4:
+        if self.cell_size > 2:
             self.cell_size -= 2
             self.update()
 
