@@ -115,29 +115,52 @@ def midpoint_hyperbola(cx, cy, a, b, limit=None):
 
 def midpoint_parabola(cx, cy, p, direction=1, limit=None):
     p = max(1, round(abs(p)))
-
     if limit is None:
         limit = max(50, 5 * p)
-
     seen = set()
-    direction = 1 if direction >= 0 else -1
-    prev_y = 0
+    dir = 1 if direction >= 0 else -1
+    p2 = 2 * p
+    p4 = 2 * p2
 
-    for x in range(limit + 1):
-        y_float = (2.0 * p * x) ** 0.5
-        y = round(y_float)
+    x = 0
+    y = 0
+    d = 1 - p
 
-        px = cx + direction * x
+    if (cx, cy) not in seen:
+        seen.add((cx, cy))
+        yield (cx, cy, 1.0)
 
-        if y == 0:
-            if (px, cy) not in seen:
-                seen.add((px, cy))
-                yield (px, cy, 1.0)
-        else:
-            for iy in range(prev_y, y + 1):
-                for py in [cy + iy, cy - iy]:
-                    if (px, py) not in seen:
-                        seen.add((px, py))
-                        yield (px, py, 1.0)
+    while y < p:
+        px = cx + dir * x
+        if (px, cy + y) not in seen:
+            seen.add((px, cy + y))
+            yield (px, cy + y, 1.0)
+        if y > 0 and (px, cy - y) not in seen:
+            seen.add((px, cy - y))
+            yield (px, cy - y, 1.0)
 
-        prev_y = y
+        if d >= 0:
+            x += 1
+            d -= p2
+        y += 1
+        d += 2 * y + 1
+
+    if d == 1:
+        d = 1 - p4
+    else:
+        d = 1 - p2
+
+    while x < limit:
+        px = cx + dir * x
+        if (px, cy + y) not in seen:
+            seen.add((px, cy + y))
+            yield (px, cy + y, 1.0)
+        if y > 0 and (px, cy - y) not in seen:
+            seen.add((px, cy - y))
+            yield (px, cy - y, 1.0)
+
+        if d < 0:
+            y += 1
+            d += 4 * y
+        x += 1
+        d -= p4
