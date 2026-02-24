@@ -1,9 +1,12 @@
-from PyQt6.QtCore import QPoint, Qt
+from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
 
 class CanvasWidget(QWidget):
+    point_selected = pyqtSignal(int, int)
+    point_moved = pyqtSignal(int, int)
+
     def __init__(self):
         super().__init__()
         self.setMinimumSize(600, 600)
@@ -15,6 +18,8 @@ class CanvasWidget(QWidget):
 
         self.is_panning = False
         self.last_pan_pos = QPoint()
+        self.is_editing_point = False
+        self.edited_point_idx = None
 
         self.lines = []
         self.clicked_points = []
@@ -97,13 +102,31 @@ class CanvasWidget(QWidget):
             wx, wy = self.screen_to_world(a0.pos().x(), a0.pos().y())
             self.clicked_points.append((wx, wy))
             self.update()
+        elif a0.button() == Qt.MouseButton.MiddleButton:
+            wx, wy = self.screen_to_world(a0.pos().x(), a0.pos().y())
+            for i, point in enumerate(self.clicked_points):
+                if point[0] == wx and point[1] == wy:
+                    self.is_editing_point = True
+                    self.edited_point_idx = i
+                    self.point_selected.emit(a0.pos().x(), a0.pos().y())
+                    return
         elif a0.button() == Qt.MouseButton.LeftButton:
             self.is_panning = True
             self.last_pan_pos = a0.pos()
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, a0):
-        if self.is_panning and a0 is not None:
+        if (
+            self.is_editing_point
+            and self.edited_point_idx is not None
+            and a0 is not None
+        ):
+            wx, wy = self.screen_to_world(a0.pos().x(), a0.pos().y())
+            if self.edited_point_idx < len(self.clicked_points):
+                self.clicked_points[self.edited_point_idx] = (wx, wy)
+                self.point_moved.emit(a0.pos().x(), a0.pos().y())
+                self.update()
+        elif self.is_panning and a0 is not None:
             delta = a0.pos() - self.last_pan_pos
             self.offset_x += delta.x()
             self.offset_y -= delta.y()
@@ -111,9 +134,13 @@ class CanvasWidget(QWidget):
             self.update()
 
     def mouseReleaseEvent(self, a0):
-        if a0 is not None and (a0.button() == Qt.MouseButton.LeftButton):
-            self.is_panning = False
-            self.setCursor(Qt.CursorShape.ArrowCursor)
+        if a0 is not None:
+            if a0.button() == Qt.MouseButton.MiddleButton:
+                self.is_editing_point = False
+                self.edited_point_idx = None
+            elif a0.button() == Qt.MouseButton.LeftButton:
+                self.is_panning = False
+                self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def paintEvent(self, a0):
         painter = QPainter(self)

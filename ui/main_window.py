@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 
 from ui.canvas_widget import CanvasWidget
 from ui.tools.conic_tool import ConicsToolWidget
+from ui.tools.curves_tool import CurvesTool
 from ui.tools.line_tool import LineTool
 
 
@@ -77,6 +78,9 @@ class MainWindow(QMainWindow):
         self.conics_tool_btn = self._create_tool_button("Curves", "conics")
         layout.addWidget(self.conics_tool_btn)
 
+        self.parametric_tool_btn = self._create_tool_button("Parametric", "parametric")
+        layout.addWidget(self.parametric_tool_btn)
+
         layout.addStretch()
         return panel
 
@@ -108,6 +112,7 @@ class MainWindow(QMainWindow):
     def _register_tools(self):
         self.tools["line"] = LineTool(self.canvas)
         self.tools["conics"] = ConicsToolWidget(self.canvas)
+        self.tools["parametric"] = CurvesTool(self.canvas)
 
     def _activate_tool(self, tool_id):
         if tool_id not in self.tools:
